@@ -47,6 +47,7 @@ func TlsServerConfig(CACertFilePath string, CertFilePath string, KeyFilePath str
 		MinVersion:   tls.VersionTLS13,
 		ClientAuth:   clientAuth,
 		ClientCAs:    certPool,
+		RootCAs:      certPool,
 		Certificates: []tls.Certificate{serverTLSCert},
 		CipherSuites: CIPHER_SUITES,
 	}
@@ -84,6 +85,11 @@ func TlsClientConfig(CACertFilePath string, CertFilePath string, KeyFilePath str
 }
 
 func TlsClientConfigFromTlsConfig(tlsConfig *tls.Config, serverName string) *tls.Config {
+
+	// Return nil if no TLS config is set
+	if tlsConfig == nil {
+		return nil
+	}
 
 	// Set TLS configuration
 	newTlsConfig := &tls.Config{
