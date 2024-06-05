@@ -38,6 +38,7 @@
         givc-app = pkgs.callPackage ./nixos/packages/givc-app.nix {};
         givc-agent = pkgs.callPackage ./nixos/packages/givc-agent.nix {};
         givc-admin = pkgs.callPackage ./nixos/packages/givc-admin.nix {};
+        givc-host-server = pkgs.callPackage ./nixos/packages/givc-host-server.nix {};
       };
 
       # DevShells
@@ -53,6 +54,7 @@
       # NixOS Modules
       nixosModules = {
         admin = import ./nixos/modules/admin.nix;
+        host-server = import ./nixos/modules/host-server.nix;
         host = import ./nixos/modules/host.nix;
         sysvm = import ./nixos/modules/sysvm.nix;
         appvm = import ./nixos/modules/appvm.nix;

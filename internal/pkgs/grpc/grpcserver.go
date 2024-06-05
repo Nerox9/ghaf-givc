@@ -15,6 +15,7 @@ import (
 
 	"golang.org/x/sync/errgroup"
 	grpc "google.golang.org/grpc"
+	"google.golang.org/grpc/reflection"
 	grpc_creds "google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/credentials/insecure"
 
@@ -63,6 +64,10 @@ func NewServer(cfg *types.EndpointConfig, services []types.GrpcServiceRegistrati
 		),
 		grpcTlsConfig,
 	)
+
+
+	// Register reflection service on gRPC server.
+    reflection.Register(srv.grpcServer)	
 
 	// Register gRPC services
 	for _, s := range srv.config.Services {

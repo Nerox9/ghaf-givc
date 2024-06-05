@@ -19,6 +19,11 @@ type AdminServer struct {
 	admin_api.UnimplementedAdminServiceServer
 }
 
+type HostServer struct {
+	HostService *AdminService
+	admin_api.UnimplementedAdminServiceServer
+}
+
 func (s *AdminServer) Name() string {
 	return "Admin Server"
 }
@@ -29,6 +34,18 @@ func (s *AdminServer) RegisterGrpcService(srv *grpc.Server) {
 func NewAdminServer(cfg *types.EndpointConfig) *AdminServer {
 	return &AdminServer{
 		AdminService: NewAdminService(cfg),
+	}
+}
+
+func (s *HostServer) Name() string {
+	return "Host Server"
+}
+func (s *HostServer) RegisterGrpcService(srv *grpc.Server) {
+	admin_api.RegisterAdminServiceServer(srv, s)
+}
+func NewHostServer(cfg *types.EndpointConfig) *HostServer {
+	return &HostServer{
+		HostService: NewAdminService(cfg),
 	}
 }
 
@@ -85,6 +102,26 @@ func (s *AdminServer) StartApplication(ctx context.Context, req *admin_api.Appli
 	var appStatus string
 	cmdStatus := "Command success."
 	appStatus, err := s.AdminService.StartApplication(req.AppName)
+	if err != nil {
+		cmdStatus = "Command failed"
+		appStatus = err.Error()
+	}
+
+	resp := &admin_api.ApplicationResponse{
+		CmdStatus: cmdStatus,
+		AppStatus: appStatus,
+	}
+
+	return resp, nil
+}
+
+func (s *HostServer) StartApplication(ctx context.Context, req *admin_api.ApplicationRequest) (*admin_api.ApplicationResponse, error) {
+
+	// @TODO verify remote
+
+	var appStatus string
+	cmdStatus := "Command success."
+	appStatus, err := s.HostService.StartApplication(req.AppName)
 	if err != nil {
 		cmdStatus = "Command failed"
 		appStatus = err.Error()
