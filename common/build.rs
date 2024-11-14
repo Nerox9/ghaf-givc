@@ -17,4 +17,8 @@ fn main() {
         .file_descriptor_set_path(out_dir.join("systemd_descriptor.bin"))
         .compile(&["api/systemd/systemd.proto"], &["systemd"])
         .unwrap();
+    tonic_build::configure()
+        .file_descriptor_set_path(out_dir.join("wifi_descriptor.bin"))
+        .compile(&["api/wifi/wifi.proto"], &["wifi"])
+        .unwrap();
 }

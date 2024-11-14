@@ -13,6 +13,7 @@ use givc_common::types::*;
 use crate::endpoint::{EndpointConfig, TlsConfig};
 
 type Client = pb::admin_service_client::AdminServiceClient<Channel>;
+type WifiGRPCClient = pb::wifi_service_client::WifiServiceClient<Channel>;
 
 pub struct WatchResult {
     pub initial: Vec<QueryResult>,
@@ -21,6 +22,10 @@ pub struct WatchResult {
     pub channel: Receiver<Event>,
 
     _quit: mpsc::Sender<()>,
+}
+
+pub struct WifiResult {
+    pub response: Vec<QueryResult>,
 }
 
 #[derive(Debug)]
@@ -56,34 +61,7 @@ impl AdminClient {
         }
     }
 
-    pub async fn register_service(
-        &self,
-        name: String,
-        ty: UnitType,
-        endpoint: EndpointEntry,
-        status: UnitStatus,
-    ) -> anyhow::Result<()> {
-        // Convert everything into wire format
-        let request = pb::admin::RegistryRequest {
-            name,
-            parent: "".to_owned(),
-            r#type: ty.into(),
-            transport: Some(endpoint.into()),
-            state: Some(status.into()),
-        };
-        let response = self
-            .connect_to()
-            .await?
-            .register_service(request)
-            .await?
-            .into_inner();
-        if let Some(err) = response.error {
-            bail!("{err}");
-        }
-        Ok(())
-    }
-
-    pub async fn start(
+    pub async fn get_mac_address(
         &self,
         app_name: String,
         vm_name: Option<String>,
@@ -232,6 +210,50 @@ impl AdminClient {
             initial: list,
             channel: rx,
             _quit: quittx,
+        };
+        Ok(result)
+    }
+}
+
+
+#[derive(Debug)]
+pub struct WifiClient {
+    endpoint: EndpointConfig,
+}
+
+impl WifiClient {
+    async fn connect_to(&self) -> anyhow::Result<WifiGRPCClient> {
+        let channel = self.endpoint.connect().await?;
+        Ok(WifiGRPCClient::new(channel))
+    }
+
+    // New style api, not yet implemented, stub atm to make current code happy
+    // FIXME: Still doubt if constructor should be sync or async
+    pub fn new(addr: String, port: u16, tls_info: Option<(String, TlsConfig)>) -> Self {
+        Self::from_endpoint_address(EndpointAddress::Tcp { addr, port }, tls_info)
+    }
+
+    pub fn from_endpoint_address(
+        address: EndpointAddress,
+        tls_info: Option<(String, TlsConfig)>,
+    ) -> Self {
+        let (tls_name, tls) = match tls_info {
+            Some((name, tls)) => (name, Some(tls)),
+            None => (String::from("bogus(no tls)"), None),
+        };
+        Self {
+            endpoint: EndpointConfig {
+                transport: TransportConfig { address, tls_name },
+                tls,
+            },
+        }
+    }
+
+    pub async fn get_mac_address(&self) -> anyhow::Result<WifiResult> {
+        let request = pb::wifi::Empty {};
+        let _response = self.connect_to().await?.GetMACAddress(request).await?;
+        let result = WifiResult {
+            response: _response,
         };
         Ok(result)
     }

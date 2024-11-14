@@ -32,6 +32,10 @@ message WifiConnectionResponse {
     string Response = 1;
 }
 
+message WifiMACResponse {
+    string MacAddress = 1;
+}
+
 service WifiService {
     rpc ListNetwork(WifiNetworkRequest) returns (WifiNetworkResponse) {}
     rpc GetActiveConnection(EmptyRequest) returns (AccessPoint) {}
@@ -39,4 +43,5 @@ service WifiService {
     rpc DisconnectNetwork(EmptyRequest) returns (WifiConnectionResponse) {}
     rpc TurnOn(EmptyRequest) returns (WifiConnectionResponse) {}
     rpc TurnOff(EmptyRequest) returns (WifiConnectionResponse) {}
+    rpc GetMACAddress(EmptyRequest) returns (WifiMACResponse) {}
 }
