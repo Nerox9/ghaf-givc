@@ -132,3 +132,15 @@ func (s *WifiControlServer) TurnOff(ctx context.Context, req *wifi_api.EmptyRequ
 
 	return &wifi_api.WifiConnectionResponse{Response: response}, nil
 }
+
+func (s *WifiControlServer) GetMACAddress(ctx context.Context, req *wifi_api.EmptyRequest) (*wifi_api.WifiMACResponse, error) {
+	log.Infof("Incoming request to get the MAC address\n")
+
+	address, err := s.Controller.MACAddress(context.Background())
+	if err != nil {
+		log.Infof("[MACAddress] Error to get MAC address: %v\n", err)
+		return nil, fmt.Errorf("cannot get the address")
+	}
+
+	return &wifi_api.WifiMACResponse{MacAddress: address}, nil
+}

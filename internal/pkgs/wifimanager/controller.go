@@ -365,6 +365,24 @@ func (c *WifiController) WifiRadioSwitch(ctx context.Context, TurnOn bool) (stri
 	return fmt.Sprintf("Wireless %s successfully", status), nil
 }
 
+func (c *WifiController) MACAddress(ctx context.Context) (string, error) {
+	var address string
+
+	// Input validation
+	if ctx == nil {
+		return "", fmt.Errorf("context cannot be nil")
+	}
+
+	// Iterate over Wi-Fi devices
+	for _, device := range c.wifiDevices {
+		address := device.Call("org.freedesktop.NetworkManager.Device.HwAddress", 0)
+		if address.Err != nil {
+			return "", fmt.Errorf("failed to get MAC address %s: %s", device.Path(), address.Err)
+		}
+	}
+	return address, nil
+}
+
 func (c *WifiController) GetWifiDevices() ([]dbus.BusObject, error) {
 	var wifiDevices []dbus.BusObject
 	var deviceType uint32

@@ -23,6 +23,10 @@ pub struct WatchResult {
     _quit: mpsc::Sender<()>,
 }
 
+pub struct WifiResult {
+    pub response: Vec<QueryResult>,
+}
+
 #[derive(Debug)]
 pub struct AdminClient {
     endpoint: EndpointConfig,
@@ -54,33 +58,6 @@ impl AdminClient {
                 tls,
             },
         }
-    }
-
-    pub async fn register_service(
-        &self,
-        name: String,
-        ty: UnitType,
-        endpoint: EndpointEntry,
-        status: UnitStatus,
-    ) -> anyhow::Result<()> {
-        // Convert everything into wire format
-        let request = pb::admin::RegistryRequest {
-            name,
-            parent: "".to_owned(),
-            r#type: ty.into(),
-            transport: Some(endpoint.into()),
-            state: Some(status.into()),
-        };
-        let response = self
-            .connect_to()
-            .await?
-            .register_service(request)
-            .await?
-            .into_inner();
-        if let Some(err) = response.error {
-            bail!("{err}");
-        }
-        Ok(())
     }
 
     pub async fn start(
